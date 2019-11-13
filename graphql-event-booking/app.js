@@ -2,6 +2,9 @@ const express = require("express");
 const bodyparser = require("body-parser");
 const httpGraphql = require("express-graphql");
 const { buildSchema } = require("graphql");
+const mongoose = require("mongoose");
+
+const Event = require("./models/event");
 
 const app = express();
 const events = [];
@@ -42,22 +45,48 @@ app.use(
     `),
     rootValue: {
       events: () => {
-        return events; //["Sudheer", "Kumar", "Papineni"];
+        return Event.find()
+          .then(events => {
+            return events.map(event => {
+              return { ...event._doc, _id: event._doc._id.toString() };
+            });
+          })
+          .catch(err => {
+            console.log(err);
+            throw err;
+          });
       },
       createEvent: args => {
-        const event = {
-          _id: Math.random().toString(),
+        const event = new Event({
           title: args.inputEvent.title,
           description: args.inputEvent.description,
           price: +args.inputEvent.price,
-          date: args.inputEvent.date
-        };
-        events.push(event);
-        return event;
+          date: new Date(args.inputEvent.date)
+        });
+
+        return event
+          .save()
+          .then(result => {
+            console.log(result);
+            return { ...result._doc, _id: result._doc._id.toString() };
+          })
+          .catch(err => {
+            console.log(err);
+            throw err;
+          });
       }
     },
     graphiql: true
   })
 );
 
-app.listen(3000);
+mongoose
+  .connect(
+    `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0-muaei.mongodb.net/${process.env.DB}?retryWrites=true&w=majority`
+  )
+  .then(() => {
+    app.listen(3000);
+  })
+  .catch(err => {
+    console.log(err);
+  });
