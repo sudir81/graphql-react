@@ -2,7 +2,7 @@ This is node js project for creating API's, where using GraphQL, MongoDB & Mongo
 
 ## Available Scripts
 
-Update Below MongoDB details in the project<br>
+Update Below MongoDB details in nodemon.json file<br>
 {<br>
 "MONGO_USER": "user name",<br>
 "MONGO_PASSWORD": "password",<br>
